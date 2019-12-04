@@ -17,9 +17,10 @@
         cd  src
         ```
     
-    - 下载代码
+    - 下载代码并且更新子模块
         ```Shell
         git clone --recursive https://github.com/efc-robot/ROS-DSLAM.git
+        cd ROS-DSLAM
         ```
 
     - 使用catkin_make 编译
@@ -29,6 +30,7 @@
         ```
 
 ## 在ROS中运行
+    要先准备数据集，不然会报错，数据集可以问xuzhilin要。
     
     ```
     source ~/catkin_ws_d/devel/setup.bash
