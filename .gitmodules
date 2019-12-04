@@ -1,0 +1,3 @@
+[submodule "superpointlib"]
+	path = superpointlib
+	url = https://github.com/efc-robot/superpoint.git

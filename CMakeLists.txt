@@ -7,13 +7,14 @@ add_compile_options(-std=c++11)
 SET(CPU_ARCH x86_64)
 SET(CAFFE_DIR /home/yujc/robotws/caffe-ssd/) #选择caffe路径
 SET(G2O_CMAKE_MODULES /home/yujc/robotws/g2o/cmake_modules/)
+SET(SUPERPOINT_LIB ${PROJECT_SOURCE_DIR}/superpointlib/lib/libsuperpoint.so)
 
 
 
 
 SET(GLOG_BOOST_LIBS /usr/lib/${CPU_ARCH}-linux-gnu/libglog.so /usr/lib/${CPU_ARCH}-linux-gnu/libboost_system.so) #caffe执行过程中的依赖库
 
-LIST(APPEND CMAKE_MODULE_PATH CMAKE_MODULE_PATH  G2O_CMAKE_MODULES)
+LIST(APPEND CMAKE_MODULE_PATH CMAKE_MODULE_PATH  ${G2O_CMAKE_MODULES})
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -212,7 +213,7 @@ target_link_libraries(superpoint_EF
   ${OpenCV_LIBRARIES}
   ${CAFFE_DIR}/build/lib/libcaffe.so
   ${GLOG_BOOST_LIBS}
-  ${PROJECT_SOURCE_DIR}/lib/libsuperpoint.so
+  ${SUPERPOINT_LIB}
 )
 SET(G2O_LIBS g2o_cli g2o_ext_freeglut_minimal g2o_simulator g2o_solver_slam2d_linear g2o_types_icp g2o_types_slam2d g2o_core g2o_interface g2o_solver_csparse g2o_solver_structure_only g2o_types_sba g2o_types_slam3d g2o_csparse_extension g2o_opengl_helper g2o_solver_dense g2o_stuff g2o_types_sclam2d g2o_parser g2o_solver_pcg g2o_types_data g2o_types_sim3 cxsparse )
 ## Specify libraries to link a library or executable target against
@@ -226,6 +227,8 @@ target_link_libraries(generate_track
   ${OpenCV_LIBRARIES}
 )
 
+
+ADD_SUBDIRECTORY(superpointlib)
 
 #############
 ## Install ##
