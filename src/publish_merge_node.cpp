@@ -13,7 +13,7 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "publish_merge_node");
   
-  char FileDir[200] = "//home/yujc/robotws/dateset/sq_502_503/image/";
+  char FileDir[200] = "//home/yujc/robotws/dataset/sq_502_503/image/";
   if(argc >= 2) {
     snprintf(FileDir, sizeof(FileDir), argv[1]);
   }

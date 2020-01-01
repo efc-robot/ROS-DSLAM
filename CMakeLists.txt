@@ -81,6 +81,7 @@ add_message_files(
   Descriptor.msg
   Descriptors_vector.msg
   EF_output.msg
+  PRrepresentor.msg
 )
 
 
