@@ -1,3 +1,6 @@
 [submodule "superpointlib"]
 	path = superpointlib
 	url = https://github.com/efc-robot/superpoint.git
+[submodule "mattersim"]
+	path = mattersim
+	url = https://github.com/peteanderson80/Matterport3DSimulator.git
