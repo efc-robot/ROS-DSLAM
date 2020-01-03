@@ -4,3 +4,6 @@
 [submodule "mattersim"]
 	path = mattersim
 	url = https://github.com/peteanderson80/Matterport3DSimulator.git
+[submodule "script/trajectROS"]
+	path = script/trajectROS
+	url = https://github.com/yujincheng/trajectROS
