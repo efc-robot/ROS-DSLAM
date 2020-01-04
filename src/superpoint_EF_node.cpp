@@ -16,6 +16,7 @@
 
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/highgui/highgui.hpp>
+#include <chrono>
 
 using namespace cv;
 using namespace std;
@@ -46,6 +47,8 @@ void KeyPoint_cv2ros(cv::KeyPoint cv_kp, dslam_sp::KeyPoint& ros_kp)
 void img_Callback(const dslam_sp::image_depth::ConstPtr &msg, SuperPoint &superpoint)
 {  
     // Convert to OpenCV native BGR color
+    // std::chrono::steady_clock::time_point//timepoint[5];
+    // int timeindex = 0;
     cv_bridge::CvImageConstPtr cv_ptr1, cv_ptr2;
     sensor_msgs::ImagePtr img_ptr = boost::make_shared<::sensor_msgs::Image>(msg->image);
     sensor_msgs::ImagePtr dep_ptr = boost::make_shared<::sensor_msgs::Image>(msg->depth);
@@ -59,6 +62,9 @@ void img_Callback(const dslam_sp::image_depth::ConstPtr &msg, SuperPoint &superp
     // cout <<  "img_raw.size:" << image_raw.size() << "  depth_raw.size:" << depth_raw.size() << endl;
     // imshow( g_window_name, image_raw );
     
+   //timepoint[timeindex++] = std::chrono::steady_clock::now();
+
+
     //裁剪到640x480
     Mat image;
     Mat depth;
@@ -79,6 +85,8 @@ void img_Callback(const dslam_sp::image_depth::ConstPtr &msg, SuperPoint &superp
         // cout <<  "width_" << width_ << "  margin" << margin << endl;
     }
     // cout <<  "img.size:" << image.size() << "  depth.size:" << depth.size() << endl;
+
+    
     
     Size dsize = Size(640,480);
     if(image.size() != dsize){
@@ -88,11 +96,13 @@ void img_Callback(const dslam_sp::image_depth::ConstPtr &msg, SuperPoint &superp
         camera_info_tmp.P[6] = camera_info_tmp.P[6] * (480.0/image.rows);
     }   
     // cout <<  "img.size:" << image.size() << "  depth.size:" << depth.size() << endl;
+   //timepoint[timeindex++] = std::chrono::steady_clock::now();
     
     std::vector<cv::KeyPoint> kpts;
     std::vector<std::vector<float> > dspts;
     
     superpoint.ExactSP(image, kpts, dspts);
+   //timepoint[timeindex++] = std::chrono::steady_clock::now();
     
     dslam_sp::EF_output feature_msg;
     feature_msg.header = msg->image.header;
@@ -116,6 +126,12 @@ void img_Callback(const dslam_sp::image_depth::ConstPtr &msg, SuperPoint &superp
         ds_ros.desc = dspts[i];
         feature_msg.descriptors.descriptor.push_back(ds_ros);
     }
+   //timepoint[timeindex++] = std::chrono::steady_clock::now();
+
+    // for (int index = 0; index < 4; index ++){
+    //     std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(timepoint[index+1] -//timepoint[index]);
+    //     cout << "timedurarion: " << index << " , consumes " << time_span.count() << " seconds.";
+    // }
     // cout << "dspts[0][0]:" << dspts[0][0] << endl;
     // cout << "feature_msg.keypoints.keypoint[0].response:" << feature_msg.keypoints.keypoint[0].response << endl;
     
@@ -128,7 +144,7 @@ void img_Callback(const dslam_sp::image_depth::ConstPtr &msg, SuperPoint &superp
 
 int main(int argc, char **argv)
 {
-  Caffe::set_mode(Caffe::CPU);
+  Caffe::set_mode(Caffe::GPU);
   SuperPoint superpoint = SuperPoint("/home/yujc/robotws/DSLAM_one/src/ROS-DSLAM/superpointlib/model/superpoint.prototxt", "/home/yujc/robotws/DSLAM_one/src/ROS-DSLAM/superpointlib/model/superpoint.caffemodel", 200);
   ros::init(argc, argv, "superpoint_EF", ros::init_options::AnonymousName);
   if (ros::names::remap("image") == "image") {
