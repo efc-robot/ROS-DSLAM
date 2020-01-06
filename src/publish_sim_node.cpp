@@ -1,12 +1,18 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <ros/ros.h>
+#include <sensor_msgs/Image.h>
+#include <sensor_msgs/CameraInfo.h>
+#include <dslam_sp/image_depth.h>
+#include <opencv2/highgui/highgui.hpp>
+#include <cv_bridge/cv_bridge.h>
 
 #include "MatterSim.hpp"
 
 using namespace mattersim;
 
-#define WIDTH  320
-#define HEIGHT 240
+#define WIDTH  640
+#define HEIGHT 480
 #define VFOV 60/180*3.14159265358979323846
 #define HFOV VFOV*WIDTH/HEIGHT
 
@@ -18,10 +24,18 @@ using namespace mattersim;
 
 int main(int argc, char *argv[]) {
 
+    ros::init(argc, argv, "publish_sim_node");
+    ros::NodeHandle n;
+
     cv::namedWindow("C++ RGB");
 
-    Simulator sim;
+    dslam_sp::image_depth img_depth_msg;
+    sensor_msgs::CameraInfo camera_info;
+    camera_info.P = {-3.35368, 1.27672, 21.592, 0, 0, -1,  0, 1, 0, 0.4, 0.326155, 1};
+    ros::Publisher pub = n.advertise<dslam_sp::image_depth>("/merge/img_depth_file", 1); //创建publisher，往话题上发布消息
+    ros::Publisher pub_info = n.advertise<sensor_msgs::CameraInfo>("/mynteye/left_rect/camera_info", 1); //创建publisher，往话题上发布消息
 
+    Simulator sim;
     // Sets resolution. Default is 320X240
     sim.setCameraResolution(WIDTH,HEIGHT);
     sim.setDepthEnabled(false);
@@ -29,10 +43,8 @@ int main(int argc, char *argv[]) {
     // Initialize the simulator. Further camera configuration won't take any effect from now on.
     sim.initialize();
 
-    std::cout << "\nC++ Demo" << std::endl;
-    std::cout << "Showing some random viewpoints in one building." << std::endl;
-
     sim.newRandomEpisode(std::vector<std::string>(1,"17DRP5sb8fy")); // Launches at a random location
+    ros::Rate loop_rate(0.33);
 
     int i = 0;
     while(true) {
@@ -48,6 +60,9 @@ int main(int argc, char *argv[]) {
         float elevation = state->elevation; // camera parameters
         std::vector<ViewpointPtr> reachable = state->navigableLocations; // Where we can move to,
         int locationIdx = 0; // Must be an index into reachable
+
+        cv::Mat gray;
+        cvtColor(rgb, gray, CV_RGB2GRAY);
         for(int i=0; i<reachable.size();i++) {
             ViewpointPtr location = reachable[i];
             double font_scale = 1.0/location->rel_distance;
@@ -90,8 +105,20 @@ int main(int argc, char *argv[]) {
             elevationChange = -ANGLEDELTA;
         }
 
+        if(headingChange!=0 || elevationChange!=0) {
+            sensor_msgs::ImagePtr ptr = cv_bridge::CvImage(std_msgs::Header(), "mono8", gray).toImageMsg();
+            img_depth_msg.image = *ptr;
+            ptr = cv_bridge::CvImage(std_msgs::Header(), "mono16", depth).toImageMsg();
+            img_depth_msg.depth = *ptr;
+
+            std::cout << "publish: " << state->location->viewpointId << std::endl;
+            pub.publish(img_depth_msg);//以1Hz的频率发布msg
+            pub_info.publish(camera_info);//以1Hz的频率发布msg
+            loop_rate.sleep();
+        }
+
         cv::imshow("C++ RGB", rgb);
-        cv::waitKey(10);
+        //cv::waitKey(10);
 
         sim.makeAction(std::vector<unsigned int>(1, locationIdx), 
                         std::vector<double>(1, headingChange), 
