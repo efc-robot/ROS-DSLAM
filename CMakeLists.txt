@@ -5,12 +5,16 @@ project(dslam_sp)
 add_compile_options(-std=c++11)
 
 SET(CPU_ARCH x86_64)
-SET(CAFFE_DIR /home/yujc/robotws/caffe-ssd/) #选择caffe路径
-SET(G2O_CMAKE_MODULES /home/yujc/robotws/g2o/cmake_modules/)
+SET(CAFFE_DIR /root/caffe-ssd/) #选择caffe路径
+SET(G2O_CMAKE_MODULES /root/g2o/cmake_modules/)
 SET(SUPERPOINT_LIB ${PROJECT_SOURCE_DIR}/superpointlib/lib/libsuperpoint.so)
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
 
-
+set(Matter_LIBS /root/catkin_ws/src/ROS-DSLAM/mattersim/build/libMatterSim.so)
+set(Matter_INCLUDE ./mattersim/include)
 
 SET(GLOG_BOOST_LIBS /usr/lib/${CPU_ARCH}-linux-gnu/libglog.so /usr/lib/${CPU_ARCH}-linux-gnu/libboost_system.so) #caffe执行过程中的依赖库
 
@@ -163,6 +167,7 @@ include
   ${EIGEN3_INCLUDE_DIR}
   ${G2O_INCLUDE_DIR}
   ${CSPARSE_INCLUDE_DIR}
+  ${Matter_INCLUDE}
   ${CAFFE_DIR}/include/
   /usr/local/include 
   /usr/local/cuda/include
@@ -182,7 +187,7 @@ include
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(merge_img_depth src/merge_img_depth_node.cpp)
-add_executable(publish_merge src/publish_merge_node.cpp)
+add_executable(publish_sim src/publish_sim_node.cpp)
 add_executable(superpoint_EF src/superpoint_EF_node.cpp)
 add_executable(visual_odometry src/visual_odometry_node.cpp)
 add_executable(generate_track src/generate_track_node.cpp)
@@ -196,7 +201,7 @@ add_executable(generate_track src/generate_track_node.cpp)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 add_dependencies(merge_img_depth ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(publish_merge ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(publish_sim ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(superpoint_EF ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(visual_odometry ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(generate_track ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -205,9 +210,10 @@ add_dependencies(generate_track ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXP
 target_link_libraries(merge_img_depth
   ${catkin_LIBRARIES}
 )
-target_link_libraries(publish_merge
+target_link_libraries(publish_sim
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
+  ${Matter_LIBS}
 )
 target_link_libraries(superpoint_EF
   ${catkin_LIBRARIES}
