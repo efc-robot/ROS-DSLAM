@@ -7,3 +7,9 @@
 [submodule "script/trajectROS"]
 	path = script/trajectROS
 	url = https://github.com/yujincheng/trajectROS
+[submodule "script/GEM_ROS"]
+	path = script/GEM_ROS
+	url = https://github.com/yujincheng/GEM_ROS.git
+[submodule "script/ROS_GEM"]
+	path = script/ROS_GEM
+	url = https://github.com/yujincheng/GEM_ROS.git
