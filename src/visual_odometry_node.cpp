@@ -122,7 +122,7 @@ void feature_Callback(const dslam_sp::EF_output::ConstPtr &msg)
         }
         // cout<<"3d-2d pairs: "<<points_3d.size() <<endl;
         
-        if (points_3d.size()<20) {
+        if (points_3d.size()<8) {
             ROS_INFO("stamp:%d.%d 3d-2d pairs:%d", msg->header.stamp.sec, msg->header.stamp.nsec, points_3d.size());
             
             points_prev = points_curr;

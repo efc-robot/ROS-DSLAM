@@ -86,6 +86,8 @@ add_message_files(
   Descriptors_vector.msg
   EF_output.msg
   PRrepresentor.msg
+  TransformStampedArray.msg
+  PoseStampedArray.msg
 )
 
 
