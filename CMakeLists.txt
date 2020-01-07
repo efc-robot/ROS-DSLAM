@@ -5,15 +5,15 @@ project(dslam_sp)
 add_compile_options(-std=c++11)
 
 SET(CPU_ARCH x86_64)
-SET(CAFFE_DIR /root/caffe-ssd/) #选择caffe路径
-SET(G2O_CMAKE_MODULES /root/g2o/cmake_modules/)
+SET(CAFFE_DIR /home/yujc/robotws/caffe-ssd/) #选择caffe路径
+SET(G2O_CMAKE_MODULES /home/yujc/robotws/g2o/cmake_modules/)
 SET(SUPERPOINT_LIB ${PROJECT_SOURCE_DIR}/superpointlib/lib/libsuperpoint.so)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(Matter_LIBS /root/catkin_ws/src/ROS-DSLAM/mattersim/build/libMatterSim.so)
+set(Matter_LIBS /home/yujc/robotws/DSLAM_one/src/ros_dslam_new/mattersim/build/libMatterSim.so)
 set(Matter_INCLUDE ./mattersim/include)
 
 SET(GLOG_BOOST_LIBS /usr/lib/${CPU_ARCH}-linux-gnu/libglog.so /usr/lib/${CPU_ARCH}-linux-gnu/libboost_system.so) #caffe执行过程中的依赖库
@@ -190,6 +190,8 @@ include
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(merge_img_depth src/merge_img_depth_node.cpp)
 add_executable(publish_sim src/publish_sim_node.cpp)
+add_executable(publish_merge src/publish_merge_node.cpp)
+add_executable(vo_loop_fnames src/VO_loop_filenames.cpp)
 add_executable(superpoint_EF src/superpoint_EF_node.cpp)
 add_executable(visual_odometry src/visual_odometry_node.cpp)
 add_executable(generate_track src/generate_track_node.cpp)
@@ -205,12 +207,18 @@ add_executable(generate_track src/generate_track_node.cpp)
 add_dependencies(merge_img_depth ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(publish_sim ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(superpoint_EF ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(publish_merge ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(vo_loop_fnames ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(visual_odometry ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(generate_track ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(merge_img_depth
   ${catkin_LIBRARIES}
+)
+target_link_libraries(publish_merge
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
 )
 target_link_libraries(publish_sim
   ${catkin_LIBRARIES}
@@ -229,6 +237,14 @@ SET(G2O_LIBS g2o_cli g2o_ext_freeglut_minimal g2o_simulator g2o_solver_slam2d_li
 target_link_libraries(visual_odometry
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
+  ${G2O_LIBS}
+)
+target_link_libraries(vo_loop_fnames
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${CAFFE_DIR}/build/lib/libcaffe.so
+  ${GLOG_BOOST_LIBS}
+  ${SUPERPOINT_LIB}
   ${G2O_LIBS}
 )
 target_link_libraries(generate_track

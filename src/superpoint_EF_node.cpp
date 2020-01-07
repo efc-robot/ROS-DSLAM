@@ -106,7 +106,8 @@ void img_Callback(const dslam_sp::image_depth::ConstPtr &msg, SuperPoint &superp
     
     dslam_sp::EF_output feature_msg;
     feature_msg.header = msg->image.header;
-    feature_msg.header.frame_id = std::to_string(frame_id++);
+    // feature_msg.header.frame_id = std::to_string(frame_id++);
+    feature_msg.header.frame_id = msg->header.frame_id;
     feature_msg.P = camera_info_tmp.P;
     cout << "feature_msg.header.frame_id:" << feature_msg.header.frame_id << endl;
     
@@ -145,7 +146,7 @@ void img_Callback(const dslam_sp::image_depth::ConstPtr &msg, SuperPoint &superp
 int main(int argc, char **argv)
 {
   Caffe::set_mode(Caffe::GPU);
-  SuperPoint superpoint = SuperPoint("/home/yujc/robotws/DSLAM_one/src/ROS-DSLAM/superpointlib/model/superpoint.prototxt", "/home/yujc/robotws/DSLAM_one/src/ROS-DSLAM/superpointlib/model/superpoint.caffemodel", 200);
+  SuperPoint superpoint = SuperPoint("/home/yujc/robotws/DSLAM_one/src/ros_dslam_new/superpointlib/model/superpoint.prototxt", "/home/yujc/robotws/DSLAM_one/src/ros_dslam_new/superpointlib/model/superpoint.caffemodel", 200);
   ros::init(argc, argv, "superpoint_EF", ros::init_options::AnonymousName);
   if (ros::names::remap("image") == "image") {
     ROS_WARN("Topic 'image' has not been remapped! Typical command-line usage:\n"

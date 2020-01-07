@@ -29,7 +29,7 @@ int main(int argc, char **argv)
   
   ros::Publisher pub = n.advertise<dslam_sp::image_depth>("/merge/img_depth_file", 1); //创建publisher，往话题上发布消息
   ros::Publisher pub_info = n.advertise<sensor_msgs::CameraInfo>("/mynteye/left_rect/camera_info", 1); //创建publisher，往话题上发布消息
-  ros::Rate loop_rate(20);   //定义发布的频率，20HZ 
+  ros::Rate loop_rate(10);   //定义发布的频率，20HZ 
   
   while (ros::ok())   //循环发布msg
   {
@@ -37,7 +37,6 @@ int main(int argc, char **argv)
     
     sprintf(image_name, "%s/left_%d.png", FileDir, tmp);
     sprintf(depth_name, "%s/depth_%d.png", FileDir, tmp);
-    tmp++;
     
     Mat Image = imread ( image_name, CV_LOAD_IMAGE_UNCHANGED );
     Mat Depth = imread ( depth_name, CV_LOAD_IMAGE_UNCHANGED );
@@ -51,6 +50,9 @@ int main(int argc, char **argv)
     img_depth_msg.image = *ptr;
     ptr = cv_bridge::CvImage(std_msgs::Header(), "mono16", Depth).toImageMsg();
     img_depth_msg.depth = *ptr;
+
+    img_depth_msg.header.frame_id = std::to_string(tmp);
+    tmp++;
     
     cout << "publish: " << tmp << endl;
     if ( tmp %3 == 0){
