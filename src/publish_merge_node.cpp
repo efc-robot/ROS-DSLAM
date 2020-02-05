@@ -29,6 +29,8 @@ int main(int argc, char **argv)
   
   ros::Publisher pub = n.advertise<dslam_sp::image_depth>("/merge/img_depth_file", 1); //创建publisher，往话题上发布消息
   ros::Publisher pub_info = n.advertise<sensor_msgs::CameraInfo>("/mynteye/left_rect/camera_info", 1); //创建publisher，往话题上发布消息
+  ros::Publisher pub_image = n.advertise<sensor_msgs::Image>("/mynteye/left_rect/image", 1); //创建publisher，往话题上发布消息
+  ros::Publisher pub_depth = n.advertise<sensor_msgs::Image>("/mynteye/left_rect/depth", 1); //创建publisher，往话题上发布消息
   ros::Rate loop_rate(10);   //定义发布的频率，20HZ 
   
   while (ros::ok())   //循环发布msg
@@ -57,6 +59,8 @@ int main(int argc, char **argv)
     cout << "publish: " << tmp << endl;
     if ( tmp %3 == 0){
       pub.publish(img_depth_msg);//以1Hz的频率发布msg
+      pub_image.publish(img_depth_msg.image);
+      pub_depth.publish(img_depth_msg.depth);
       pub_info.publish(camera_info);//以1Hz的频率发布msg
       loop_rate.sleep();//根据前面的定义的loop_rate,设置1s的暂停
     }

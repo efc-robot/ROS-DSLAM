@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node name="publish" pkg="dslam_sp" required="true" type="publish_merge"/>
+  
+  <node name="sp_EF" pkg="dslam_sp" required="true" type="superpoint_EF" output="screen">
+    <remap from="image" to="/merge/img_depth_file" />
+  </node>
+  
+  <node name="vo" pkg="dslam_sp" required="true" type="visual_odometry" output="screen">
+    <remap from="feature" to="/superpoint_EF/featurepoints_descriptors" />
+  </node>
+  
+  <node name="gen_tf" pkg="dslam_sp" required="true" type="generate_track_node.py" output="screen">
+    <remap from="relpose" to="/visual_odometry/transform_relative" />
+  </node>
+
+</launch>
