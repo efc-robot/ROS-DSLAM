@@ -13,7 +13,7 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(Matter_LIBS /home/yujc/robotws/DSLAM_one/src/ros_dslam_new/mattersim/build/libMatterSim.so)
+set(Matter_LIBS /home/yujc/robotws/DSLAM_one/src/ROS-DSLAM/mattersim/build/libMatterSim.so)
 set(Matter_INCLUDE ./mattersim/include)
 
 SET(GLOG_BOOST_LIBS /usr/lib/${CPU_ARCH}-linux-gnu/libglog.so /usr/lib/${CPU_ARCH}-linux-gnu/libboost_system.so) #caffe执行过程中的依赖库
@@ -193,7 +193,9 @@ add_executable(publish_sim src/publish_sim_node.cpp)
 add_executable(publish_merge src/publish_merge_node.cpp)
 add_executable(vo_loop_fnames src/VO_loop_filenames.cpp)
 add_executable(superpoint_EF src/superpoint_EF_node.cpp)
+add_executable(orb_EF src/orb_EF_node.cpp)
 add_executable(visual_odometry src/visual_odometry_node.cpp)
+add_executable(visual_odometry_orb src/visual_odometry_orb_node.cpp)
 add_executable(generate_track src/generate_track_node.cpp)
 
 ## Rename C++ executable without prefix
@@ -207,9 +209,11 @@ add_executable(generate_track src/generate_track_node.cpp)
 add_dependencies(merge_img_depth ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(publish_sim ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(superpoint_EF ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(orb_EF ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(publish_merge ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(vo_loop_fnames ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(visual_odometry ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(visual_odometry_orb ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(generate_track ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
@@ -232,9 +236,19 @@ target_link_libraries(superpoint_EF
   ${GLOG_BOOST_LIBS}
   ${SUPERPOINT_LIB}
 )
+target_link_libraries(orb_EF
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${GLOG_BOOST_LIBS}
+)
 SET(G2O_LIBS g2o_cli g2o_ext_freeglut_minimal g2o_simulator g2o_solver_slam2d_linear g2o_types_icp g2o_types_slam2d g2o_core g2o_interface g2o_solver_csparse g2o_solver_structure_only g2o_types_sba g2o_types_slam3d g2o_csparse_extension g2o_opengl_helper g2o_solver_dense g2o_stuff g2o_types_sclam2d g2o_parser g2o_solver_pcg g2o_types_data g2o_types_sim3 cxsparse )
 ## Specify libraries to link a library or executable target against
 target_link_libraries(visual_odometry
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${G2O_LIBS}
+)
+target_link_libraries(visual_odometry_orb
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${G2O_LIBS}

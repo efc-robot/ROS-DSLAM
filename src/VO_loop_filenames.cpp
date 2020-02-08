@@ -265,7 +265,7 @@ void fnames_Callback(const std_msgs::String::ConstPtr &msg, SuperPoint &superpoi
 int main(int argc, char **argv)
 {
   Caffe::set_mode(Caffe::GPU);
-  SuperPoint superpoint = SuperPoint("/home/yujc/robotws/DSLAM_one/src/ros_dslam_new/superpointlib/model/superpoint.prototxt", "/home/yujc/robotws/DSLAM_one/src/ros_dslam_new/superpointlib/model/superpoint.caffemodel", 200);
+  SuperPoint superpoint = SuperPoint("/home/yujc/robotws/DSLAM_one/src/ROS-DSLAM/superpointlib/model/superpoint.prototxt", "/home/yujc/robotws/DSLAM_one/src/ROS-DSLAM/superpointlib/model/superpoint.caffemodel", 200);
   ros::init(argc, argv, "VO_loop", ros::init_options::AnonymousName);
   if (ros::names::remap("filenames") == "filenames") {
     ROS_WARN("Topic 'filenames' has not been remapped! Typical command-line usage:\n"

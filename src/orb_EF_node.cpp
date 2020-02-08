@@ -11,22 +11,25 @@
 
 #include <boost/make_shared.hpp>
 
-#include <caffe/caffe.hpp>
-#include <dslam_sp/SuperPoint.hpp>
-
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/features2d/features2d.hpp>
 #include <chrono>
 
 using namespace cv;
 using namespace std;
-using namespace caffe;  // NOLINT(build/namespaces)
 
 string g_window_name;
 // SuperPoint superpoint;
 ros::Publisher pub;
 sensor_msgs::CameraInfo camera_info;
 int frame_id = 0;
+#ifndef NMS_Threshold
+#define NMS_Threshold 4
+#endif
+#ifndef KEEP_K_POINTS
+#define KEEP_K_POINTS 300
+#endif
 
 void info_Callback(const sensor_msgs::CameraInfo::ConstPtr &msg)
 {  
@@ -44,7 +47,36 @@ void KeyPoint_cv2ros(cv::KeyPoint cv_kp, dslam_sp::KeyPoint& ros_kp)
     ros_kp.size = cv_kp.size;
 }
 
-void img_Callback(const dslam_sp::image_depth::ConstPtr &msg, SuperPoint &superpoint)
+//局部极大值抑制，这里利用fast特征点的响应值做比较
+void selectMax(int r, std::vector<KeyPoint> & kp){
+
+    //r是局部极大值抑制的窗口半径
+    if (r != 0){
+        //对kp中的点进行局部极大值筛选
+        for (int i = 0; i < kp.size(); i++){
+            for (int j = i + 1; j < kp.size(); j++){
+                //如果两个点的距离小于半径r，则删除其中响应值较小的点
+                if (abs(kp[i].pt.x - kp[j].pt.x)<=r && abs(kp[i].pt.y - kp[j].pt.y)<=r){
+                    if (kp[i].response < kp[j].response){
+                        std::vector<KeyPoint>::iterator it = kp.begin() + i;
+                        kp.erase(it);
+                        i--;
+                        break;
+                    }
+                    else{
+                        std::vector<KeyPoint>::iterator it = kp.begin() + j;
+                        kp.erase(it);
+                        j--;
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+
+void img_Callback(const dslam_sp::image_depth::ConstPtr &msg, Ptr<FeatureDetector> &detector, Ptr<DescriptorExtractor> &descriptor)
 {  
     // Convert to OpenCV native BGR color
     // std::chrono::steady_clock::time_point//timepoint[5];
@@ -100,8 +132,44 @@ void img_Callback(const dslam_sp::image_depth::ConstPtr &msg, SuperPoint &superp
     
     std::vector<cv::KeyPoint> kpts;
     std::vector<std::vector<float> > dspts;
+
+    Mat descriptor_results;
+    detector->detect ( image,kpts );
+    //NMS
+    selectMax(NMS_Threshold, kpts);
+    cout << "keypoints size:" << kpts.size() << endl;
     
-    superpoint.ExactSP(image, kpts, dspts);
+    // for(int i=0; i<min( KEEP_K_POINTS, int(kpts.size()-1) ); i++) {
+    //     for(int j=kpts.size()-1; j>i; j--) {
+    //         if(kpts[j].response > kpts[j-1].response) {
+    //             swap(kpts[j], kpts[j-1]);
+    //         }
+    //     }
+    // }
+    // if(kpts.size()>KEEP_K_POINTS) kpts.resize(KEEP_K_POINTS, KeyPoint());
+
+    //-- 第二步:根据角点位置计算 BRIEF 描述子
+    descriptor->compute ( image, kpts, descriptor_results );
+
+    cout << "descriptor_results: "<< descriptor_results.size() << endl;
+    cout << "cols: "<< descriptor_results.cols << endl;
+    cout << "rows: "<< descriptor_results.rows << endl;
+    cout << "type: "<< descriptor_results.type() << endl;
+
+    for (int i = 0;  i< kpts.size(); i++){
+        std::vector<float> dspts_tmp;
+        dspts_tmp.resize(32);
+        uchar* pData = descriptor_results.ptr<uchar>(i);
+        for (int j = 0; j < descriptor_results.cols; j++){
+            dspts_tmp[j] = (float)pData[j] ;
+        }
+        // cout << descriptor_results.at()
+        dspts.push_back(dspts_tmp);
+    }
+
+
+    
+//     superpoint.ExactSP(image, kpts, dspts);
    //timepoint[timeindex++] = std::chrono::steady_clock::now();
     
     dslam_sp::EF_output feature_msg;
@@ -139,15 +207,18 @@ void img_Callback(const dslam_sp::image_depth::ConstPtr &msg, SuperPoint &superp
     pub.publish(feature_msg);//发布msg
     
     // imshow( g_window_name, image );
-    // waitKey(1);
+    // waitKey(10);
 }
 
 
 int main(int argc, char **argv)
 {
-  Caffe::set_mode(Caffe::GPU);
-  SuperPoint superpoint = SuperPoint("/home/yujc/robotws/DSLAM_one/src/ROS-DSLAM/superpointlib/model/superpoint.prototxt", "/home/yujc/robotws/DSLAM_one/src/ROS-DSLAM/superpointlib/model/superpoint.caffemodel", 200);
-  ros::init(argc, argv, "superpoint_EF", ros::init_options::AnonymousName);
+//   Ptr<FeatureDetector> detector = FeatureDetector::create ( "ORB" );
+//   Ptr<DescriptorExtractor> descriptor = DescriptorExtractor::create ( "ORB" );
+  Ptr<FeatureDetector> detector = ORB::create( 2000 );
+  Ptr<DescriptorExtractor> descriptor = ORB::create();
+
+  ros::init(argc, argv, "orb_EF", ros::init_options::AnonymousName);
   if (ros::names::remap("image") == "image") {
     ROS_WARN("Topic 'image' has not been remapped! Typical command-line usage:\n"
              "\t$ rosrun superpoint_EF superpoint_EF_node image:=<image topic> [transport]");
@@ -157,12 +228,12 @@ int main(int argc, char **argv)
   std::string topic = n.resolveName("image");
   g_window_name = topic;
   
-  pub = n.advertise<dslam_sp::EF_output>("/superpoint_EF/featurepoints_descriptors", 1); //创建publisher，往"featurepoints_descriptors"话题上发布消息
+  pub = n.advertise<dslam_sp::EF_output>("/orb_EF/featurepoints_descriptors", 1); //创建publisher，往"featurepoints_descriptors"话题上发布消息
   
   // namedWindow( g_window_name, WINDOW_AUTOSIZE );// Create a window for display.
   
   ros::Subscriber sub_info = n.subscribe("/mynteye/left_rect/camera_info", 1, info_Callback);
-  ros::Subscriber sub = n.subscribe<dslam_sp::image_depth>(topic, 1, boost::bind(&img_Callback,_1, superpoint) );  //设置回调函数gpsCallback
+  ros::Subscriber sub = n.subscribe<dslam_sp::image_depth>(topic, 1, boost::bind(&img_Callback,_1, detector, descriptor) );  //设置回调函数gpsCallback
   ros::spin(); //ros::spin()用于调用所有可触发的回调函数，将进入循环，不会返回，类似于在循环里反复调用spinOnce() 
   //而ros::spinOnce()只会去触发一次
   return 0;
