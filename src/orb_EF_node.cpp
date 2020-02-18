@@ -136,7 +136,7 @@ void img_Callback(const dslam_sp::image_depth::ConstPtr &msg, Ptr<FeatureDetecto
     Mat descriptor_results;
     detector->detect ( image,kpts );
     //NMS
-    selectMax(NMS_Threshold, kpts);
+    // selectMax(NMS_Threshold, kpts);
     cout << "keypoints size:" << kpts.size() << endl;
     
     // for(int i=0; i<min( KEEP_K_POINTS, int(kpts.size()-1) ); i++) {
@@ -206,8 +206,8 @@ void img_Callback(const dslam_sp::image_depth::ConstPtr &msg, Ptr<FeatureDetecto
     
     pub.publish(feature_msg);//发布msg
     
-    // imshow( g_window_name, image );
-    // waitKey(10);
+    imshow( g_window_name, image );
+    waitKey(1);
 }
 
 
@@ -215,7 +215,7 @@ int main(int argc, char **argv)
 {
 //   Ptr<FeatureDetector> detector = FeatureDetector::create ( "ORB" );
 //   Ptr<DescriptorExtractor> descriptor = DescriptorExtractor::create ( "ORB" );
-  Ptr<FeatureDetector> detector = ORB::create( 2000 );
+  Ptr<FeatureDetector> detector = ORB::create( 1000 );
   Ptr<DescriptorExtractor> descriptor = ORB::create();
 
   ros::init(argc, argv, "orb_EF", ros::init_options::AnonymousName);
@@ -230,7 +230,7 @@ int main(int argc, char **argv)
   
   pub = n.advertise<dslam_sp::EF_output>("/orb_EF/featurepoints_descriptors", 1); //创建publisher，往"featurepoints_descriptors"话题上发布消息
   
-  // namedWindow( g_window_name, WINDOW_AUTOSIZE );// Create a window for display.
+  namedWindow( g_window_name, WINDOW_AUTOSIZE );// Create a window for display.
   
   ros::Subscriber sub_info = n.subscribe("/mynteye/left_rect/camera_info", 1, info_Callback);
   ros::Subscriber sub = n.subscribe<dslam_sp::image_depth>(topic, 1, boost::bind(&img_Callback,_1, detector, descriptor) );  //设置回调函数gpsCallback

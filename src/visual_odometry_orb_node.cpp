@@ -9,10 +9,11 @@
 
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <boost/make_shared.hpp>
 
-#define KEEP_K_POINTS 200
+#define KEEP_K_POINTS 1000
 #define MATCHER "BF"
 #define NN_thresh 0.7
 
@@ -113,7 +114,7 @@ void feature_Callback(const dslam_sp::EF_output::ConstPtr &msg)
         //配对后的筛选
         vector <Point2f> RAN_KP1, RAN_KP2;
         for(int i=0; i<matches.size(); i++) {
-            if ( matches[i].distance> max ( 3*min_dist, 20.0 ) )
+            if ( matches[i].distance> max ( 3*min_dist, 30.0 ) )
                 continue;
             // if ( abs(points1[matches[i].queryIdx].x-points2[matches[i].trainIdx].x)> Width/10 )
                 // continue;
@@ -134,6 +135,7 @@ void feature_Callback(const dslam_sp::EF_output::ConstPtr &msg)
         vector<Point3f> points_3d;
         vector<Point2f> points_2d;        //vectors to store the coordinates of the feature points
         Mat K = ( Mat_<double> ( 3,3 ) << msg->P[0], 0, msg->P[2], 0, msg->P[5], msg->P[6], 0, 0, 1 );
+        Mat img_2 = Mat::zeros(480,640,CV_8UC3);
         for ( int i=0; i<RAN_KP1.size(); i++ )
         {
             if (RansacStatus[i] == 0)
@@ -145,8 +147,13 @@ void feature_Callback(const dslam_sp::EF_output::ConstPtr &msg)
             Point2d p1 = pixel2cam ( RAN_KP1[i], K );
             points_3d.push_back ( Point3f ( p1.x*dd, p1.y*dd, dd ) );
             points_2d.push_back ( RAN_KP2[i] );
+
+            line(img_2, RAN_KP1[i], RAN_KP2[i], Scalar(0, 0, 255));
+            circle(img_2, RAN_KP2[i], 4, cv::Scalar(0, 0, 255));
         }
         // cout<<"3d-2d pairs: "<<points_3d.size() <<endl;
+        imshow( g_window_name, img_2 );
+        waitKey(1);
         
         if (points_3d.size()<8) {
             ROS_INFO("stamp:%d.%d 3d-2d pairs:%d", msg->header.stamp.sec, msg->header.stamp.nsec, points_3d.size());
@@ -211,7 +218,7 @@ int main(int argc, char **argv)
   
   pub = n.advertise<geometry_msgs::TransformStamped>("/visual_odometry/transform_relative", 1); //创建publisher，往"transform_relative"话题上发布消息
   
-  // namedWindow( g_window_name, WINDOW_AUTOSIZE );// Create a window for display.
+  namedWindow( g_window_name, WINDOW_AUTOSIZE );// Create a window for display.
   
   First_Frame = true;
   
