@@ -28,6 +28,9 @@ ros::Publisher pub;
 sensor_msgs::CameraInfo camera_info;
 int frame_id = 0;
 
+char ProFileDir[200] = "/PATH/TO/PROTOTXT/";
+char ModelFileDir[200] = "/PATH/TO/CAFFEMODEL/";
+
 void info_Callback(const sensor_msgs::CameraInfo::ConstPtr &msg)
 {  
     camera_info.P = msg->P;
@@ -145,8 +148,22 @@ void img_Callback(const dslam_sp::image_depth::ConstPtr &msg, SuperPoint &superp
 
 int main(int argc, char **argv)
 {
-  Caffe::set_mode(Caffe::CPU);
-  SuperPoint superpoint = SuperPoint("/home/yujc/robotws/DSLAM_one/src/ROS-DSLAM/superpointlib/model/superpoint.prototxt", "/home/yujc/robotws/DSLAM_one/src/ROS-DSLAM/superpointlib/model/superpoint.caffemodel", 200);
+    int o;
+    const char *optstring = "P:W:"; // 有三个选项-abc，其中c选项后有冒号，所以后面必须有参数
+    while ((o = getopt(argc, argv, optstring)) != -1) {
+        switch (o) {
+            case 'P':
+                strcpy(ProFileDir, optarg);
+                break;
+            case 'W':
+                strcpy(ModelFileDir, optarg);
+                break;
+            default:
+                break;
+        }
+    }
+  Caffe::set_mode(Caffe::GPU);
+  SuperPoint superpoint = SuperPoint(ProFileDir, ModelFileDir, 200);
   ros::init(argc, argv, "superpoint_EF", ros::init_options::AnonymousName);
   if (ros::names::remap("image") == "image") {
     ROS_WARN("Topic 'image' has not been remapped! Typical command-line usage:\n"

@@ -33,7 +33,7 @@ string g_window_name;
 ros::Publisher pub;
 sensor_msgs::CameraInfo camera_info;
 int frame_id = 0;
-char FileDir[200] = "/home/yujc/robotws/dataset/image_503_loop";
+char FileDir[200] = "/PATH/TO/DATASET/";
 
 void info_Callback(const sensor_msgs::CameraInfo::ConstPtr &msg)
 {  
@@ -372,7 +372,17 @@ void fnames_Callback(const std_msgs::String::ConstPtr &msg, Ptr<FeatureDetector>
 
 int main(int argc, char **argv)
 {
-  
+    int o;
+    const char *optstring = "p:"; // 有三个选项-abc，其中c选项后有冒号，所以后面必须有参数
+    while ((o = getopt(argc, argv, optstring)) != -1) {
+        switch (o) {
+            case 'p':
+                strcpy(FileDir, optarg);
+                break;
+            default:
+                break;
+        }
+    }
   Ptr<FeatureDetector> detector = ORB::create( 1000 );
   Ptr<DescriptorExtractor> descriptor = ORB::create();
   ros::init(argc, argv, "VO_loop", ros::init_options::AnonymousName);

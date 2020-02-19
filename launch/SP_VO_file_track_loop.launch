@@ -1,9 +1,14 @@
 <?xml version="1.0"?>
 <launch>
-
-  <node name="publish" pkg="dslam_sp" required="true" type="publish_merge"/>
+<arg name="gemweightspath" value="/home/yujc/robotws/DSLAM_one/src/ROS-DSLAM/script/ROS_GEM/weights/gem.pth" />
+<arg name="datasetpath" value="/home/yujc/robotws/dataset/image_503_loop/" />
+<arg name="sp_prototxt" value="/home/yujc/robotws/DSLAM_one/src/ROS-DSLAM/superpointlib/model/superpoint.prototxt" />
+<arg name="sp_caffemodel" value="/home/yujc/robotws/DSLAM_one/src/ROS-DSLAM/superpointlib/model/superpoint.caffemodel" />
   
-  <node name="sp_EF" pkg="dslam_sp" required="true" type="superpoint_EF" output="screen">
+  
+  <node name="publish" pkg="dslam_sp" required="true" type="publish_merge" args="-p $(arg datasetpath)"/>
+  
+  <node name="sp_EF" pkg="dslam_sp" required="true" type="superpoint_EF"   args="-P $(arg sp_prototxt) -W $(arg sp_caffemodel)" output="screen">
     <remap from="image" to="/merge/img_depth_file" />
   </node>
   
@@ -15,7 +20,7 @@
     <remap from="relpose" to="/visual_odometry/transform_relative" />
   </node>
 
-  <node name="gem_extract" pkg="dslam_sp" required="true" type="extract_feature_ros.py" output="screen">
+  <node name="gem_extract" pkg="dslam_sp" required="true" type="extract_feature_ros.py"  args="-w $(arg gemweightspath)" output="screen" >
     <remap from="PRrepresentor" to="GEM_PRrepresentor" />
   </node>
 

@@ -36,7 +36,9 @@ string g_window_name;
 ros::Publisher pub;
 sensor_msgs::CameraInfo camera_info;
 int frame_id = 0;
-char FileDir[200] = "/home/yujc/robotws/dataset/image_503_loop";
+char FileDir[200] = "/PATH/TO/DATASET/";
+char ProFileDir[200] = "/PATH/TO/PROTOTXT/";
+char ModelFileDir[200] = "/PATH/TO/CAFFEMODEL/";
 
 void info_Callback(const sensor_msgs::CameraInfo::ConstPtr &msg)
 {  
@@ -264,8 +266,26 @@ void fnames_Callback(const std_msgs::String::ConstPtr &msg, SuperPoint &superpoi
 
 int main(int argc, char **argv)
 {
+    
+    int o;
+    const char *optstring = "p:P:W:"; // 有三个选项-abc，其中c选项后有冒号，所以后面必须有参数
+    while ((o = getopt(argc, argv, optstring)) != -1) {
+        switch (o) {
+            case 'p':
+                strcpy(FileDir, optarg);
+                break;
+            case 'P':
+                strcpy(ProFileDir, optarg);
+                break;
+            case 'W':
+                strcpy(ModelFileDir, optarg);
+                break;
+            default:
+                break;
+        }
+    }
   Caffe::set_mode(Caffe::GPU);
-  SuperPoint superpoint = SuperPoint("/home/yujc/robotws/DSLAM_one/src/ROS-DSLAM/superpointlib/model/superpoint.prototxt", "/home/yujc/robotws/DSLAM_one/src/ROS-DSLAM/superpointlib/model/superpoint.caffemodel", 200);
+  SuperPoint superpoint = SuperPoint(ProFileDir, ModelFileDir, 200);
   ros::init(argc, argv, "VO_loop", ros::init_options::AnonymousName);
   if (ros::names::remap("filenames") == "filenames") {
     ROS_WARN("Topic 'filenames' has not been remapped! Typical command-line usage:\n"

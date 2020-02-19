@@ -2,7 +2,7 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <dslam_sp/image_depth.h>
-
+#include <string>
 #include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>
 
@@ -11,12 +11,21 @@ using namespace cv;
 
 int main(int argc, char **argv)
 {
+    int o;
+    char FileDir[200] = "/PATH/TO/DATASET/";
+    const char *optstring = "p:"; // 有三个选项-abc，其中c选项后有冒号，所以后面必须有参数
+    while ((o = getopt(argc, argv, optstring)) != -1) {
+        switch (o) {
+            case 'p':
+                strcpy(FileDir, optarg);
+                break;
+            default:
+                break;
+        }
+    }
+
   ros::init(argc, argv, "publish_merge_node");
-  
-  char FileDir[200] = "/home/yujc/robotws/dataset/image_503_loop/";
-  if(argc >= 2) {
-    snprintf(FileDir, sizeof(FileDir), argv[1]);
-  }
+
   
   ros::NodeHandle n;
   

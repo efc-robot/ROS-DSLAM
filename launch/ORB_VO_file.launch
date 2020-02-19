@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
 <launch>
+<arg name="gemweightspath" value="/home/yujc/robotws/DSLAM_one/src/ROS-DSLAM/script/ROS_GEM/weights/gem.pth" />
+<arg name="datasetpath" value="/home/yujc/robotws/dataset/image_503_loop/" />
 
-  <node name="publish" pkg="dslam_sp" required="true" type="publish_merge" output="screen"/>
+  <node name="publish" pkg="dslam_sp" required="true" type="publish_merge" args="-p $(arg datasetpath)"/>
   
   <node name="sp_ORB" pkg="dslam_sp" required="true" type="orb_EF" output="screen">
     <remap from="image" to="/merge/img_depth_file" />
