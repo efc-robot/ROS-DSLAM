@@ -56,6 +56,14 @@ void feature_Callback(const dslam_sp::EF_output::ConstPtr &msg)
     std::vector<dslam_sp::Descriptor> descriptors = msg->descriptors.descriptor;
     cout << "PRE3" << endl;
     
+    // cout << "LOG start" << endl;
+    // for ( auto keypoint1 : keypoints){
+    //     cout << keypoint1 << endl;
+    // }
+    // for ( auto descriptor1 : descriptors){
+    //     cout << descriptor1 << endl;
+    // }
+
     //top k个特征点
     if(keypoints.size() > KEEP_K_POINTS) {
         top_k(keypoints, descriptors, keypoints.size(), KEEP_K_POINTS);
@@ -73,13 +81,27 @@ void feature_Callback(const dslam_sp::EF_output::ConstPtr &msg)
         for(int j = 0; j < desc_curr.cols; j++){
             pData[j] = (uchar) descriptors[i].desc[j];
         }
+        
     }
-    cout <<  "points_curr size:" << points_curr.size() << endl;
     
     //判定是否有prev数据，第一帧不做match
     if(!First_Frame)
     {
+        
         //match
+        // cout << "LOG start" << endl;
+        // for ( auto prev_point : points_prev){
+        //     cout << prev_point << endl;
+        // }
+        // cout << desc_prev << endl;
+        // cout << depth_prev << endl;
+
+        // for ( auto curr_point : points_curr){
+        //     cout << curr_point << endl;
+        // }
+        // cout << desc_curr << endl;
+        // cout << depth_curr << endl;
+
         vector<DMatch> matches;
         if( MATCHER == "BF" ) {
 
@@ -152,8 +174,8 @@ void feature_Callback(const dslam_sp::EF_output::ConstPtr &msg)
             circle(img_2, RAN_KP2[i], 4, cv::Scalar(0, 0, 255));
         }
         // cout<<"3d-2d pairs: "<<points_3d.size() <<endl;
-        imshow( g_window_name, img_2 );
-        waitKey(1);
+        // imshow( g_window_name, img_2 );
+        // waitKey(1);
         
         if (points_3d.size()<8) {
             ROS_INFO("stamp:%d.%d 3d-2d pairs:%d", msg->header.stamp.sec, msg->header.stamp.nsec, points_3d.size());

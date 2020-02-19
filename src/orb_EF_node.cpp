@@ -206,8 +206,8 @@ void img_Callback(const dslam_sp::image_depth::ConstPtr &msg, Ptr<FeatureDetecto
     
     pub.publish(feature_msg);//发布msg
     
-    imshow( g_window_name, image );
-    waitKey(1);
+    // imshow( g_window_name, image );
+    // waitKey(1);
 }
 
 

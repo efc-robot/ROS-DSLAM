@@ -5,8 +5,8 @@ project(dslam_sp)
 add_compile_options(-std=c++11)
 
 SET(CPU_ARCH x86_64)
-SET(CAFFE_DIR /home/xuzhl/git_workspace/caffe/) #选择caffe路径
-SET(G2O_CMAKE_MODULES /home/xuzhl/git_workspace/g2o/cmake_modules/)
+SET(CAFFE_DIR /home/yujc/robotws/caffe-ssd/) #选择caffe路径
+SET(G2O_CMAKE_MODULES /home/yujc/robotws/g2o/cmake_modules/)
 SET(SUPERPOINT_LIB ${PROJECT_SOURCE_DIR}/superpointlib/lib/libsuperpoint.so)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -192,6 +192,7 @@ add_executable(merge_img_depth src/merge_img_depth_node.cpp)
 # add_executable(publish_sim src/publish_sim_node.cpp)
 add_executable(publish_merge src/publish_merge_node.cpp)
 add_executable(vo_loop_fnames src/VO_loop_filenames.cpp)
+add_executable(vo_loop_fnames_orb src/VO_loop_filenames_orb.cpp)
 add_executable(superpoint_EF src/superpoint_EF_node.cpp)
 add_executable(orb_EF src/orb_EF_node.cpp)
 add_executable(visual_odometry src/visual_odometry_node.cpp)
@@ -212,6 +213,7 @@ add_dependencies(superpoint_EF ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPO
 add_dependencies(orb_EF ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(publish_merge ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(vo_loop_fnames ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(vo_loop_fnames_orb ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(visual_odometry ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(visual_odometry_orb ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(generate_track ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -259,6 +261,11 @@ target_link_libraries(vo_loop_fnames
   ${CAFFE_DIR}/build/lib/libcaffe.so
   ${GLOG_BOOST_LIBS}
   ${SUPERPOINT_LIB}
+  ${G2O_LIBS}
+)
+target_link_libraries(vo_loop_fnames_orb
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
   ${G2O_LIBS}
 )
 target_link_libraries(generate_track

@@ -146,7 +146,7 @@ void img_Callback(const dslam_sp::image_depth::ConstPtr &msg, SuperPoint &superp
 int main(int argc, char **argv)
 {
   Caffe::set_mode(Caffe::CPU);
-  SuperPoint superpoint = SuperPoint("/home/xuzhl/catkin_ws/src/ROS-DSLAM/superpointlib/model/superpoint.prototxt", "/home/xuzhl/catkin_ws/src/ROS-DSLAM/superpointlib/model/superpoint.caffemodel", 200);
+  SuperPoint superpoint = SuperPoint("/home/yujc/robotws/DSLAM_one/src/ROS-DSLAM/superpointlib/model/superpoint.prototxt", "/home/yujc/robotws/DSLAM_one/src/ROS-DSLAM/superpointlib/model/superpoint.caffemodel", 200);
   ros::init(argc, argv, "superpoint_EF", ros::init_options::AnonymousName);
   if (ros::names::remap("image") == "image") {
     ROS_WARN("Topic 'image' has not been remapped! Typical command-line usage:\n"

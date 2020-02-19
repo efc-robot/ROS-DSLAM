@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-  <node name="publish" pkg="dslam_sp" required="true" type="publish_merge"/>
+  <node name="publish" pkg="dslam_sp" required="true" type="publish_merge" output="screen"/>
   
   <node name="sp_ORB" pkg="dslam_sp" required="true" type="orb_EF" output="screen">
     <remap from="image" to="/merge/img_depth_file" />
@@ -12,8 +12,8 @@
     <remap from="feature" to="/orb_EF/featurepoints_descriptors" />
   </node>
 
-  <node name="gen_tf" pkg="dslam_sp" required="true" type="generate_track" output="screen">
-    <remap from="transform" to="/visual_odometry/transform_relative" />
+  <node name="gen_tf" pkg="dslam_sp" required="true" type="generate_track_node.py" output="screen">
+    <remap from="relpose" to="/visual_odometry/transform_relative" />
   </node>
 
 
