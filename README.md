@@ -36,3 +36,14 @@
     source ~/catkin_ws_d/devel/setup.bash
     roslaunch dslam_sp SP_VO_file.launch
     ```
+
+    但是SP可能需要显卡资源比较多。
+    可以只跑orb的方法。然后在rviz中可视化。
+    ```
+    source ~/catkin_ws_d/devel/setup.bash
+    roslaunch dslam_sp ORB_VO_file.launch
+    ```
+
+    注意修改 launch file 中的路径。
+    如果不想编译caffe，只想用orb，可以在CMakeLists.txt 中修改，不再变异SP相关的文件。
+    
